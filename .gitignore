@@ -119,3 +119,4 @@ dmypy.json
 # ignore directory ml-skeleton-py
 # ml-skeleton-py/
 ml-skeleton-py_env/
+befresh_env/
