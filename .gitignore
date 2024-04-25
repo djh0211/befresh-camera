@@ -122,3 +122,4 @@ ml-skeleton-py_env/
 befresh_env/
 tflite1-env/
 /examples/
+/data/annotations/
