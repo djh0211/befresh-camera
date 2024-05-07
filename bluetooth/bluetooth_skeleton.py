@@ -10,7 +10,7 @@ from pathlib import Path
 import queue
 
 bt_address_list = ['1','2','3','4','5']
-bt_address_dic = set()
+bt_address_set = set()
 bluetooth_connect_task_queue = queue.Queue()
 	
 
@@ -23,11 +23,11 @@ def load_bt_address_file():
 
 def update_bt_address_file(bt_address):
 	file_path = './bt_address_file.pickle'
-	global bt_address_dic
+	global bt_address_set
 	
-	bt_address_dic.add(bt_address)
+	bt_address_set.add(bt_address)
 	with open(file_path, 'wb') as fw:
-		bt_address_dic = pickle.dump(bt_address_dic, fw)
+		bt_address_set = pickle.dump(bt_address_set, fw)
 
 async def bluetooth_job_re_queue_in(bt_address):
 	global bluetooth_connect_task_queue
@@ -67,14 +67,14 @@ async def bluetooth_connect_worker():
 			
 
 async def program():
-	global bt_address_dic
+	global bt_address_set
 	global bluetooth_connect_task_queue
 	
-	bt_address_dic = load_bt_address_file()
+	bt_address_set = load_bt_address_file()
 	print(bt_address_dic)
 	bt_worker_task = asyncio.create_task(bluetooth_connect_worker())
 
-	for bt_address in bt_address_dic:
+	for bt_address in bt_address_set:
 		bluetooth_connect_task_queue.put(bt_address)
 	while True:
 		asyncio.sleep(1)

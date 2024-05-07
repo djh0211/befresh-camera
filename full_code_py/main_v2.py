@@ -1,6 +1,7 @@
 from module.distance_module import distance_logic
 from module.SignalBlock import SignalBlock
 from module.mic import init_mic, speak, STT, play_sound, START_SOUND, REGISTER_SOUND
+from module.register_food import register_QR_food, register_OCR_food, register_GENERAL_food
 
 import asyncio
 import time
@@ -19,7 +20,9 @@ import queue
 import json
 import re
 from datetime import datetime, date
-
+import pickle
+from pathlib import Path
+from pytz import timezone
 
 # Camera
 import cv2
@@ -28,14 +31,70 @@ from picamera2 import Picamera2, Preview
 from libcamera import controls
 import pytesseract
 
-
+# Bluetooth
+from bleak import BleakScanner, BleakClient
+import struct
 
 
 
 signal_block = SignalBlock()
+bt_address_dic = set()
+bluetooth_connect_task_queue = queue.Queue()
+	
+####################################################
+# BT
+def load_bt_address_file():
+	file_path = './bt_address_file.pickle'
+	if Path(file_path).is_file():
+		with open(file_path, 'rb') as fr:
+			return pickle.load(fr)
+	return set()
+
+def update_bt_address_file(bt_address):
+	file_path = './bt_address_file.pickle'
+	global bt_address_dic
+	
+	bt_address_dic.add(bt_address)
+	with open(file_path, 'wb') as fw:
+		bt_address_dic = pickle.dump(bt_address_dic, fw)
+
+async def bluetooth_job_re_queue_in(bt_address):
+	global bluetooth_connect_task_queue
+	await asyncio.sleep(10)
+	bluetooth_connect_task_queue.put(bt_address)
+	
+
+async def bluetooth_connect(bt_address):
+	global bluetooth_connect_task_queue
+	try:
+		while True:
+			p = random.random()
+			if p<=0.5:
+				raise Exception
+			else:
+				print(f'{bt_address} bluetooth connected')
+			print(f'{bt_address} bluetooth data transfer')
+			await asyncio.sleep(60)
+			# data transfer
+	except:
+		print(f'{bt_address} bluetooth timeout')
+		asyncio.create_task(bluetooth_job_re_queue_in(bt_address))
+		return
+
+
+async def bluetooth_connect_worker():
+	global bluetooth_connect_task_queue
+	while True:
+		if bluetooth_connect_task_queue.empty():
+			await asyncio.sleep(5)
+			continue
+		bt_address = bluetooth_connect_task_queue.get()
+		asyncio.create_task(bluetooth_connect(bt_address))
+		bluetooth_connect_task_queue.task_done()
 
 #######################################################################
 # camera/general
+"""
 async def bluetooth_connect(containerId):
 	# print('hihi')
 	while True:
@@ -45,44 +104,24 @@ async def bluetooth_connect(containerId):
 			print(f'{containerId} container bluetooth connected!!')
 			return containerId 
 		print(f'{containerId} retry again....')
-async def register_QR_food(containerId, food_name):
-	await asyncio.sleep(10)
-	data = {}
-	data['food_type'] = 'QR'
-	data['container_id'] = containerId
-	data['food_name'] = food_name
-	print(f'QR {containerId} registered!!.... {data}')
-	return data
-async def register_OCR_food(validate_time, food_name):
-	await asyncio.sleep(10)
-	data = {}
-	data['food_type'] = 'OCR'
-	data['validate_time'] = validate_time
-	data['food_name'] = food_name
-	print(f'OCR registered!!.... {data}')
-	return data
-async def register_general_food(food_name):
-	await asyncio.sleep(10)
-	data = {}
-	data['food_type'] = 'GENERAL'
-	data['food_name'] = food_name
-	print(f'GENERAL registered!!.... {data}')
-	return data
-async def general_mode():
+"""
+
+async def general_mode(dt):
 	global signal_block
 	# STT
 	# there is no cancel, if timeout -> cancel
 	#########################
 	print("its general mode")
-	# await asyncio.sleep(2)
 	food_name = STT(mic, recognizer)
-	general_register_task = asyncio.create_task(register_general_food(food_name))
+	general_register_task = asyncio.create_task(register_GENERAL_food(food_name, dt))
 	await signal_block.signal_off()
 	return food_name, general_register_task
+
 # QR/Valid Date mode
 async def camera_mode():
 	# global async_queue
 	global signal_block
+	global bluetooth_connect_task_queue 
 
 	picam2.start_preview(Preview.QTGL)
 	picam2.start()
@@ -92,24 +131,20 @@ async def camera_mode():
 	start = time.time()
 	
 	while True:
-		
-		try:
-			signal_flag = await signal_block.get_flag()
-			if signal_flag == 1:
-				data_recv = await signal_block.get_data()
+		signal_flag = await signal_block.get_flag()
+		if signal_flag == 1:
+			data_recv = await signal_block.get_data()
+			print(data_recv)
+			if data_recv['type'] == 'wakeword' and data_recv['payload'] == 'general_register':
+				# turn to general mode
+				queue_in_time = data_recv['time']
+				print('its general mode!!!!!')
 				print(data_recv)
-				if data_recv['type'] == 'wakeword' and data_recv['payload'] == 'general_register':
-					# turn to general mode
-					queue_in_time = data_recv['time']
-					print('its general mode!!!!!')
-					print(data_recv)
-					food_name, general_register_task = await general_mode()
-					futures_dic[f'register_GENERAL_{food_name}'] = general_register_task
+				dt = datetime.now(timezone('Asia/Seoul'))
+				food_name, general_register_task = await general_mode(dt)
+				k = f'GENERAL_{dt}_{food_name}'
+				futures_dic[k] = general_register_task
 	
-		except queue.Empty:
-			# no data in queue now
-			pass
-		
 
 		array = picam2.capture_array()
 		
@@ -130,15 +165,17 @@ async def camera_mode():
 							containerId = data['containerId']
 							# async bluetooth connect
 							### future_bluetooth = loop.run_in_executor(executor, bluetooth_connect, containerId)
-							future_bluetooth = asyncio.create_task(bluetooth_connect(containerId))
-							futures_dic[f'bluetooth_{containerId}'] = future_bluetooth
+							bluetooth_connect_task_queue.put(containerId)
+							update_bt_address_file(containerId)
+
 							### task_bluetooth_connect = asyncio.create_task(bluetooth_connect(containerId))
 							# food name STT
 							food_name = STT(mic, recognizer)
 
 							# async food register
-							task_register_food = asyncio.create_task(register_QR_food(containerId, food_name))
-							futures_dic[f'register_QR_{containerId}'] = task_register_food
+							dt = datetime.now(timezone('Asia/Seoul'))
+							task_register_food = asyncio.create_task(register_QR_food(containerId, food_name, dt))
+							futures_dic[f'QR_{dt}_{food_name}_{containerId}'] = task_register_food
 							
 				except Exception as e:
 					print(e)
@@ -151,15 +188,16 @@ async def camera_mode():
 		if dates:
 			date_splitted = dates[0].split('.')
 			
-			year = int(str(datetime.today().year)[:-2] + date_splitted[0][:-2])
+			year = int(str(datetime.today().year)[:2] + date_splitted[0][-2:])
 			month = int(date_splitted[1])
 			day = int(date_splitted[2][:2])
 			
 			validate_time = date(year, month, day)
 			print(validate_time)
 			food_name = STT(mic, recognizer)
-			task_register_OCR_food = asyncio.create_task(register_OCR_food(validate_time, food_name))
-			futures_dic[f'register_OCR_{food_name}'] = task_register_OCR_food
+			dt = datetime.now(timezone('Asia/Seoul'))
+			task_register_OCR_food = asyncio.create_task(register_OCR_food(validate_time, food_name, dt))
+			futures_dic[f'OCR_{dt}_{food_name}_{validate_time}'] = task_register_OCR_food
 			# register_OCR_food(validate_time, food_name)
 					
 		
@@ -230,10 +268,19 @@ async def socket_task_wrapper():
 # program
 async def program():
 	global signal_block
+	global bt_address_dic
+	global bluetooth_connect_task_queue
 
 	# socket init need to port env
 	socket_future = asyncio.create_task(socket_task_wrapper())
 	await asyncio.sleep(1)
+	
+	bt_address_dic = load_bt_address_file()
+	print(bt_address_dic)
+	bt_worker_task = asyncio.create_task(bluetooth_connect_worker())
+
+	for bt_address in bt_address_dic:
+		bluetooth_connect_task_queue.put(bt_address)
 
 	while True:
 		selected_mode = int(input("please select mode"))
@@ -257,7 +304,8 @@ async def program():
 	
 		# General mode : 2
 		else:
-			continue
+			while True:
+				await asyncio.sleep(1)
 	await socket_future		
 if __name__ == "__main__":
 	# load .env
@@ -266,7 +314,6 @@ if __name__ == "__main__":
 	# camera_init
 	picam2 = Picamera2()
 	preview_config = picam2.create_preview_configuration(buffer_count=3)
-	# capture_config = picam2.create_still_configuration(buffer_count=3)
 	picam2.configure(preview_config)
 	picam2.set_controls({"AfMode": controls.AfModeEnum.Continuous})
 	
