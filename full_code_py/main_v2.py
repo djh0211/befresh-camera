@@ -54,14 +54,14 @@ bluetooth_connect_task_queue = queue.Queue()
 # camera/general
 
 
-async def general_mode(dt):
+async def general_mode():
 	global signal_block
 	# STT
 	# there is no cancel, if timeout -> cancel
 	#########################
 	print("its general mode")
 	food_name = STT(mic, recognizer)
-	general_register_task = asyncio.create_task(register_GENERAL_food(food_name, dt))
+	general_register_task = asyncio.create_task(register_GENERAL_food(food_name))
 	await signal_block.signal_off()
 	return food_name, general_register_task
 
@@ -88,9 +88,8 @@ async def camera_mode():
 				queue_in_time = data_recv['time']
 				print('its general mode!!!!!')
 				print(data_recv)
-				dt = datetime.now(timezone('Asia/Seoul'))
-				food_name, general_register_task = await general_mode(dt)
-				k = f'GENERAL_{dt}_{food_name}'
+				food_name, general_register_task = await general_mode()
+				k = f'GENERAL_{food_name}'
 				futures_dic[k] = general_register_task
 	
 
@@ -121,31 +120,36 @@ async def camera_mode():
 							food_name = STT(mic, recognizer)
 
 							# async food register
-							dt = datetime.now(timezone('Asia/Seoul'))
-							task_register_food = asyncio.create_task(register_QR_food(bt_address, food_name, dt))
-							futures_dic[f'QR_{dt}_{food_name}_{bt_address}'] = task_register_food
+							task_register_food = asyncio.create_task(register_QR_food(bt_address, food_name))
+							futures_dic[f'QR_{food_name}_{bt_address}'] = task_register_food
 							
 				except Exception as e:
 					print(e)
 		# ocr logic
 		rgb_image = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-		custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789.'
+		custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789./'
 		text = pytesseract.image_to_string(rgb_image, config=custom_config)
 		date_pattern = r'\d{2,}\.\d{1,}\.\d{1,}'
 		dates = re.findall(date_pattern, text)
+		print(dates)
 		if dates:
-			date_splitted = dates[0].split('.')
-			
-			year = int(str(datetime.today().year)[:2] + date_splitted[0][-2:])
-			month = int(date_splitted[1])
-			day = int(date_splitted[2][:2])
-			
-			validate_time = date(year, month, day)
-			print(validate_time)
-			food_name = STT(mic, recognizer)
-			dt = datetime.now(timezone('Asia/Seoul'))
-			task_register_OCR_food = asyncio.create_task(register_OCR_food(validate_time, food_name, dt))
-			futures_dic[f'OCR_{dt}_{food_name}_{validate_time}'] = task_register_OCR_food
+			delimeter = None
+			if dates.count('.') == 2:
+				delimeter = '.'
+			elif dates.count('/') == 2:
+				delimeter = '/'
+			if delimeter is not None:
+				date_splitted = dates[0].split(delimeter)
+				
+				year = int(str(datetime.today().year)[:2] + date_splitted[0][-2:])
+				month = int(date_splitted[1])
+				day = int(date_splitted[2][:2])
+				
+				validate_time = date(year, month, day).strftime('%Y-%m-%d')
+				print(validate_time)
+				food_name = STT(mic, recognizer)
+				task_register_OCR_food = asyncio.create_task(register_OCR_food(validate_time, food_name))
+				futures_dic[f'OCR_{food_name}_{validate_time}'] = task_register_OCR_food
 			# register_OCR_food(validate_time, food_name)
 					
 		
