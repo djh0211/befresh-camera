@@ -106,62 +106,62 @@ async def bluetooth_connect(bluetooth_connect_task_queue, bt_address, sensor_dat
 			asyncio.create_task(bluetooth_job_re_queue_in(bluetooth_connect_task_queue, bt_address))
 			return
 		print(2)
-		# try:
-			# Search devices list
-			# devices = await BleakScanner.discover(timeout=20)
-			# for d in devices:
-			# 	if d.address == bt_address:
-			#		await asyncio.sleep(2)
-		# client = BleakClient(d, timeout=60)
-		client = BleakClient(bt_address, timeout=60)
-
 		try:
-			await client.connect()
-			while client.is_connected:
-				print(f'{bt_address} connect')
+			# Search devices list
+			devices = await BleakScanner.discover(timeout=20)
+			for d in devices:
+				if d.address == bt_address:
+					await asyncio.sleep(2)
+					client = BleakClient(d, timeout=60)
+					# client = BleakClient(bt_address, timeout=60)
 
-				services = client.services
-				tempData = {
-					'time': time.strftime('%Y-%m-%d %H:%M'),
-					'data': {}
-				}
-				for service in services:
-					for characteristic in service.characteristics:
-						for sense in SensorDataKeys:
-							if characteristic.uuid == SensorDataFormat[sense]['uuid']:
-								if 'read' in characteristic.properties:
-									read_data = await client.read_gatt_char(characteristic)
-									data_types = SensorDataFormat[sense]['structure']
-									values = []
-									offset = 0
-									for data_type in data_types:
-										value, = struct.unpack_from(typeMap[data_type]['type'], read_data)
-										values.append(value)
-										offset += typeMap[data_type]['size']
-									tempData['data'][sense] = values[0]
-				print(f'{bt_address}: {tempData}')
-				await sensor_data_buffer.append_data(bt_address, tempData)
-				await sensor_data_buffer.update_file()
-				await asyncio.sleep(30)
+					try:
+						await client.connect()
+						while client.is_connected:
+							print(f'{bt_address} connect')
+
+							services = client.services
+							tempData = {
+								'time': time.strftime('%Y-%m-%d %H:%M'),
+								'data': {}
+							}
+							for service in services:
+								for characteristic in service.characteristics:
+									for sense in SensorDataKeys:
+										if characteristic.uuid == SensorDataFormat[sense]['uuid']:
+											if 'read' in characteristic.properties:
+												read_data = await client.read_gatt_char(characteristic)
+												data_types = SensorDataFormat[sense]['structure']
+												values = []
+												offset = 0
+												for data_type in data_types:
+													value, = struct.unpack_from(typeMap[data_type]['type'], read_data)
+													values.append(value)
+													offset += typeMap[data_type]['size']
+												tempData['data'][sense] = values[0]
+							print(f'{bt_address}: {tempData}')
+							await sensor_data_buffer.append_data(bt_address, tempData)
+							await sensor_data_buffer.update_file()
+							await asyncio.sleep(30)
+					except Exception as e:
+						print(f'{bt_address} : {e}')
+						# disconnected
+						try:
+							print(f'{bt_address} disconnect')
+							temp += 1
+							await client.disconnect()
+						except:
+							pass
+						else:
+							# No matching device
+							raise NoMatchingBTDeviceException('No matching BT Device')
+		except NoMatchingBTDeviceException:
+			not_found += 1
+			continue
 		except Exception as e:
-			print(f'{bt_address} : {e}')
-			# disconnected
-			try:
-				print(f'{bt_address} disconnect')
-				temp += 1
-				await client.disconnect()
-			except:
-				pass
-			# else:
-				# No matching device
-			# 	raise NoMatchingBTDeviceException('No matching BT Device')
-		# except NoMatchingBTDeviceException:
-		#	not_found += 1
-		#	continue
-		# except Exception as e:
-		#	print(f'Exception caused in searching BT devices: {e}')
-		#	not_found += 1
-		#	continue
+			print(f'Exception caused in searching BT devices: {e}')
+			not_found += 1
+			continue
 
 
 

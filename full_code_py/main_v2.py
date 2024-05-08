@@ -219,7 +219,7 @@ async def socket_task_wrapper():
 async def produce_register_message():
 	pass
 async def produce_sensor_data_message(sensor_data_buffer):
-	dt = datetime.now(timezone('Asia/Seoul'))
+	dt = datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d')
 	data = await sensor_data_buffer.copy_and_delete()
 	await sensor_data_buffer.update_file()
 	if len(data.keys()) > 0:
