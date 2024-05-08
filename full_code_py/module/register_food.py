@@ -1,11 +1,11 @@
 import asyncio
 
-async def register_QR_food(containerId, food_name, dt):
+async def register_QR_food(bt_address, food_name, dt):
 	await asyncio.sleep(10)
 	data = {}
 	data['food_type'] = 'QR'
 	data['datetime'] = dt
-	data['container_id'] = containerId
+	data['bt_address'] = bt_address
 	data['food_name'] = food_name
 	# print(f'QR {containerId} registered!!.... {data}')
 	return data

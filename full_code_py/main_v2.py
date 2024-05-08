@@ -2,6 +2,7 @@ from module.distance_module import distance_logic
 from module.SignalBlock import SignalBlock
 from module.mic import init_mic, speak, STT, play_sound, START_SOUND, REGISTER_SOUND
 from module.register_food import register_QR_food, register_OCR_food, register_GENERAL_food
+from module.bluetooth_module import SensorDataFormat, typeMap, SensorDataKeys, load_bt_address_file, update_bt_address_file, bluetooth_job_re_queue_in, bluetooth_connect, bluetooth_connect_worker, SensorDataBuffer
 
 import asyncio
 import time
@@ -24,6 +25,9 @@ import pickle
 from pathlib import Path
 from pytz import timezone
 
+# Scheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 # Camera
 import cv2
 from pyzbar.pyzbar import decode
@@ -35,76 +39,20 @@ import pytesseract
 from bleak import BleakScanner, BleakClient
 import struct
 
-
-
 signal_block = SignalBlock()
 bt_address_dic = set()
+sensor_data_buffer = None
 bluetooth_connect_task_queue = queue.Queue()
 	
 ####################################################
 # BT
-def load_bt_address_file():
-	file_path = './bt_address_file.pickle'
-	if Path(file_path).is_file():
-		with open(file_path, 'rb') as fr:
-			return pickle.load(fr)
-	return set()
 
-def update_bt_address_file(bt_address):
-	file_path = './bt_address_file.pickle'
-	global bt_address_dic
-	
-	bt_address_dic.add(bt_address)
-	with open(file_path, 'wb') as fw:
-		bt_address_dic = pickle.dump(bt_address_dic, fw)
+"""
 
-async def bluetooth_job_re_queue_in(bt_address):
-	global bluetooth_connect_task_queue
-	await asyncio.sleep(10)
-	bluetooth_connect_task_queue.put(bt_address)
-	
-
-async def bluetooth_connect(bt_address):
-	global bluetooth_connect_task_queue
-	try:
-		while True:
-			p = random.random()
-			if p<=0.5:
-				raise Exception
-			else:
-				print(f'{bt_address} bluetooth connected')
-			print(f'{bt_address} bluetooth data transfer')
-			await asyncio.sleep(60)
-			# data transfer
-	except:
-		print(f'{bt_address} bluetooth timeout')
-		asyncio.create_task(bluetooth_job_re_queue_in(bt_address))
-		return
-
-
-async def bluetooth_connect_worker():
-	global bluetooth_connect_task_queue
-	while True:
-		if bluetooth_connect_task_queue.empty():
-			await asyncio.sleep(5)
-			continue
-		bt_address = bluetooth_connect_task_queue.get()
-		asyncio.create_task(bluetooth_connect(bt_address))
-		bluetooth_connect_task_queue.task_done()
-
+"""
 #######################################################################
 # camera/general
-"""
-async def bluetooth_connect(containerId):
-	# print('hihi')
-	while True:
-		await asyncio.sleep(5)
-		rand = random.random()
-		if rand >= 0.5:
-			print(f'{containerId} container bluetooth connected!!')
-			return containerId 
-		print(f'{containerId} retry again....')
-"""
+
 
 async def general_mode(dt):
 	global signal_block
@@ -119,9 +67,9 @@ async def general_mode(dt):
 
 # QR/Valid Date mode
 async def camera_mode():
-	# global async_queue
 	global signal_block
 	global bluetooth_connect_task_queue 
+	global bt_address_dic
 
 	picam2.start_preview(Preview.QTGL)
 	picam2.start()
@@ -159,14 +107,14 @@ async def camera_mode():
 					if eq(qr.type,'QRCODE'):
 						string_data = qr.data.decode('utf-8')
 						data = json.loads(string_data)
-						if 'containerId' in data and string_data not in qr_history_set:
-							print(f'containerId: {data}')
+						if 'bt_address' in data and string_data not in qr_history_set:
+							print(f'bt_address: {data}')
 							qr_history_set.add(string_data)
-							containerId = data['containerId']
+							bt_address = data['bt_address']
 							# async bluetooth connect
 							### future_bluetooth = loop.run_in_executor(executor, bluetooth_connect, containerId)
-							bluetooth_connect_task_queue.put(containerId)
-							update_bt_address_file(containerId)
+							bluetooth_connect_task_queue.put(bt_address)
+							update_bt_address_file(bt_address_dic, bt_address)
 
 							### task_bluetooth_connect = asyncio.create_task(bluetooth_connect(containerId))
 							# food name STT
@@ -174,8 +122,8 @@ async def camera_mode():
 
 							# async food register
 							dt = datetime.now(timezone('Asia/Seoul'))
-							task_register_food = asyncio.create_task(register_QR_food(containerId, food_name, dt))
-							futures_dic[f'QR_{dt}_{food_name}_{containerId}'] = task_register_food
+							task_register_food = asyncio.create_task(register_QR_food(bt_address, food_name, dt))
+							futures_dic[f'QR_{dt}_{food_name}_{bt_address}'] = task_register_food
 							
 				except Exception as e:
 					print(e)
@@ -262,6 +210,26 @@ async def socket_task_wrapper():
 		except Exception as e:
 			await asyncio.sleep(1)
 ######################################################################
+# kafka job
+
+async def produce_register_message():
+	pass
+async def produce_sensor_data_message(sensor_data_buffer):
+	dt = datetime.now(timezone('Asia/Seoul'))
+	data = await sensor_data_buffer.copy_and_delete()
+	await sensor_data_buffer.update_file()
+	if len(data.keys()) > 0:
+		payload = {
+			'execute_time' : dt,
+			'data' : data
+		}
+		try:
+			print(f'run task!!! {payload}')
+		except:
+			print('failed run task')
+
+	
+
 
 
 ######################################################################
@@ -270,15 +238,23 @@ async def program():
 	global signal_block
 	global bt_address_dic
 	global bluetooth_connect_task_queue
+	global sensor_data_buffer
 
 	# socket init need to port env
 	socket_future = asyncio.create_task(socket_task_wrapper())
 	await asyncio.sleep(1)
 	
+	sensor_data_buffer = SensorDataBuffer()
+	await sensor_data_buffer.load_file()
+	
 	bt_address_dic = load_bt_address_file()
 	print(bt_address_dic)
-	bt_worker_task = asyncio.create_task(bluetooth_connect_worker())
+	bt_worker_task = asyncio.create_task(bluetooth_connect_worker(bluetooth_connect_task_queue, sensor_data_buffer))
 
+	scheduler = AsyncIOScheduler()
+	scheduler.add_job(produce_sensor_data_message, 'interval', minutes=1, args=[sensor_data_buffer])
+	scheduler.start()
+	
 	for bt_address in bt_address_dic:
 		bluetooth_connect_task_queue.put(bt_address)
 
@@ -305,7 +281,8 @@ async def program():
 		# General mode : 2
 		else:
 			while True:
-				await asyncio.sleep(1)
+				print(sensor_data_buffer.data)
+				await asyncio.sleep(20)
 	await socket_future		
 if __name__ == "__main__":
 	# load .env
@@ -319,5 +296,6 @@ if __name__ == "__main__":
 	
 	# STT
 	mic, recognizer = init_mic()
+	
 	# main program
 	asyncio.run(program())
