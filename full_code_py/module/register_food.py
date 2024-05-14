@@ -1,5 +1,6 @@
 import asyncio
 
+
 async def register_QR_food(bt_address, food_name):
 	await asyncio.sleep(10)
 	data = {}
