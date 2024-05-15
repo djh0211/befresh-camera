@@ -1,8 +1,8 @@
 from module.distance_module import distance_logic
 from module.SignalBlock import SignalBlock
-from module.mic import init_mic, speak, STT, play_sound, START_SOUND, REGISTER_SOUND
+from module.mic import init_mic, speak, STT, play_sound
 from module.register_food import register_QR_food, register_OCR_food, register_GENERAL_food
-from module.bluetooth_module import SensorDataFormat, typeMap, SensorDataKeys, load_bt_address_file, update_bt_address_file, bluetooth_job_re_queue_in, bluetooth_connect, bluetooth_connect_worker, SensorDataBuffer
+from module.bluetooth_module import SensorDataFormat, typeMap, SensorDataKeys, load_bt_address_file, update_bt_address_file, bluetooth_job_re_queue_in, bluetooth_connect, bluetooth_connect_worker, SensorDataBuffer, ble_lock
 
 import asyncio
 import time
@@ -39,10 +39,20 @@ import pytesseract
 from bleak import BleakScanner, BleakClient
 import struct
 
+# Kafka
+from kafka import KafkaProducer
+
+
 signal_block = SignalBlock()
 bt_address_dic = set()
 sensor_data_buffer = None
 bluetooth_connect_task_queue = queue.Queue()
+
+producer = KafkaProducer(
+	bootstrap_servers=['k10a307.p.ssafy.io:9092'], # 전달하고자 하는 카프카 브로커의 주소 리스트
+	value_serializer=lambda x:json.dumps(x).encode('utf-8'), # 메시지의 값 직렬화
+	retries=3
+)
 	
 ####################################################
 # BT
@@ -70,7 +80,7 @@ async def camera_mode():
 	global signal_block
 	global bluetooth_connect_task_queue 
 	global bt_address_dic
-
+	
 	picam2.start_preview(Preview.QTGL)
 	picam2.start()
 	qr_history_set = set()
@@ -127,17 +137,21 @@ async def camera_mode():
 					print(e)
 		# ocr logic
 		rgb_image = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
-		custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789./'
+		custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789.'
 		text = pytesseract.image_to_string(rgb_image, config=custom_config)
 		date_pattern = r'\d{2,}\.\d{1,}\.\d{1,}'
 		dates = re.findall(date_pattern, text)
 		print(dates)
+		
 		if dates:
-			delimeter = None
+			
+			delimeter = '.'
+			
 			if dates.count('.') == 2:
 				delimeter = '.'
 			elif dates.count('/') == 2:
 				delimeter = '/'
+
 			if delimeter is not None:
 				date_splitted = dates[0].split(delimeter)
 				
@@ -156,6 +170,7 @@ async def camera_mode():
 					
 		# calculated distance gather -> logic		
 		distance = await distance_task
+		print(distance)
 		if distance == -1:
 			# distance error ignore once
 			continue
@@ -219,16 +234,20 @@ async def socket_task_wrapper():
 async def produce_register_message():
 	pass
 async def produce_sensor_data_message(sensor_data_buffer):
+	global producer
 	dt = datetime.now(timezone('Asia/Seoul')).strftime('%Y-%m-%d')
 	data = await sensor_data_buffer.copy_and_delete()
 	await sensor_data_buffer.update_file()
 	if len(data.keys()) > 0:
 		payload = {
 			'execute_time' : dt,
+			'refrigeratorId' : 99,
 			'data' : data
 		}
 		try:
 			print(f'run task!!! {payload}')
+			producer.send('sensor-data-topic', value=payload)
+
 		except:
 			print('failed run task')
 
@@ -243,7 +262,8 @@ async def program():
 	global bt_address_dic
 	global bluetooth_connect_task_queue
 	global sensor_data_buffer
-
+	global producer
+	
 	# socket init need to port env
 	socket_future = asyncio.create_task(socket_task_wrapper())
 	await asyncio.sleep(1)
@@ -253,10 +273,10 @@ async def program():
 	
 	bt_address_dic = load_bt_address_file()
 	print(bt_address_dic)
-	bt_worker_task = asyncio.create_task(bluetooth_connect_worker(bluetooth_connect_task_queue, sensor_data_buffer))
+	bt_worker_task = asyncio.create_task(bluetooth_connect_worker(bluetooth_connect_task_queue, sensor_data_buffer, ble_lock))
 
 	scheduler = AsyncIOScheduler()
-	scheduler.add_job(produce_sensor_data_message, 'interval', minutes=1, args=[sensor_data_buffer])
+	scheduler.add_job(produce_sensor_data_message, 'interval', minutes=3, args=[sensor_data_buffer])
 	scheduler.start()
 	
 	for bt_address in bt_address_dic:
@@ -278,6 +298,15 @@ async def program():
 			for name, result in zip(camera_futures_dic.keys(), results):
 				print(f'{name}: {result}')
 			
+			data_box = {
+				'refrigeratorId': 99,
+				'foodList': results
+			}
+			
+			
+			 
+			producer.send('food-regist', value=data_box)
+			 			
 			# register mode off
 			await signal_block.power_off()
 			

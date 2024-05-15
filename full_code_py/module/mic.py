@@ -6,7 +6,7 @@ import wave
 import speech_recognition as sr
 import pygame
 
-REGISTER_SOUND = './registered.wav'
+REGIST_SOUND = './correct.wav'
 START_SOUND = './start.wav'
 
 def speak(text):
@@ -36,14 +36,13 @@ def STT(mic, recognizer):
 			audio = recognizer.listen(source, timeout=4, phrase_time_limit=4)		
 		try:
 			result = recognizer.recognize_google(audio, language='ko-KR')
-			play_sound(REGISTER_SOUND)
+			play_sound(REGIST_SOUND)
 			# speak('the food is '+result)
 			print(result)
 			return result
-		except (sr.UnknownValueError, sr.WaitTimeoutError):
+		except:
 			print('repeat once')
-		except sr.RequestError as e:
-			print('server error')
+			pass
 def init_mic():
 	# STT
 	pygame.mixer.pre_init(24000)
@@ -52,3 +51,4 @@ def init_mic():
 	recognizer = sr.Recognizer()
 	mic = sr.Microphone()
 	return mic, recognizer
+

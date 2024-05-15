@@ -3,7 +3,6 @@ import numpy as np
 import json
 import asyncio
 import os
-import asyncio
 
 # signal
 class SignalBlock:

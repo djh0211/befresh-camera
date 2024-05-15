@@ -2,7 +2,6 @@ import asyncio
 from bleak import BleakScanner, BleakClient
 import struct
 import time
-import contextlib
 
 # 하기전에 pip install bleak
 
@@ -15,11 +14,9 @@ Sensor1 = {
 
 Sensor2 = {
   'sensorId' : 2,
-  'sensorAdress' : "45:B0:12:20:C1:71",
+  'sensorAdress' : "FB:89:EB:22:95:84",
   'sensorData': []
 }
-
-sensor_list = [Sensor1['sensorAdress'], Sensor2['sensorAdress']]
 
 # NiclaSenseME 정보
 NiclaSenseME = {
@@ -73,56 +70,79 @@ typeMap = {
 senses = NiclaSenseME.keys()
 
 # 데이터 읽어오기
+async def main(address):
+    global temp
+    global notFound
+    devices = await BleakScanner.discover(timeout=20)
+    for d in devices:
+        if d.address == address:
+            await asyncio.sleep(2)
+            client = BleakClient(d, timeout=100)
+            try:
+              print('connect 시도중')
+              await client.connect()
+              print('connect!')
+              while client.is_connected:
+                services = client.services
+                tempData = {
+                  'time': time.strftime('%Y-%m-%d %H:%M'),
+                  'data': {}
+                }
+                for service in services:
+                    for characteristic in service.characteristics:
+                        # 데이터 읽기 + 저장
+                        for sense in senses:
+                          if characteristic.uuid == NiclaSenseME[sense]['uuid']:
+                              if 'read' in characteristic.properties:
+                                read_data = await client.read_gatt_char(characteristic)
+                                data_types = NiclaSenseME[sense]['structure']
+                                values = []
+                                offset = 0
+                                for data_type in data_types:
+                                  value, = struct.unpack_from(typeMap[data_type]['type'], read_data)
+                                  values.append(value)
+                                  offset += typeMap[data_type]['size']
+                                tempData['data'][sense] = values[0]
+                                NiclaSenseME[sense]['data'] = values
+                for sense in senses:
+                  print(sense, NiclaSenseME[sense]['data'])
+                Sensor1['sensorData'].append(tempData)
+                # 1분에 한번씩 업데이트해줌
+                await asyncio.sleep(60)
+            except Exception as e:
+              print(e)
+              print(f'연결이 {temp + 1}번째 끊겼습니다. 총 5번까지 시도합니다.')
+              print(Sensor1)
+              await client.disconnect()
+              return 'disconnect'
+    else:
+        print(f'{notFound + 1}번째 시도, 장비를 찾을 수 없습니다.')
+        return 'cannot Found'
 
-async def connect(address, lock):
-  while 1:
-    try:
-      async with lock:
-        async with BleakClient(address) as client:
-          services = client.services
-          tempData = {
-            'time': time.strftime('%Y-%m-%d %H:%M'),
-            'data': {}
-          }
-          for service in services:
-              for characteristic in service.characteristics:
-                  # 데이터 읽기 + 저장
-                  for sense in senses:
-                    if characteristic.uuid == NiclaSenseME[sense]['uuid']:
-                        if 'read' in characteristic.properties:
-                          read_data = await client.read_gatt_char(characteristic)
-                          data_types = NiclaSenseME[sense]['structure']
-                          values = []
-                          offset = 0
-                          for data_type in data_types:
-                            value, = struct.unpack_from(typeMap[data_type]['type'], read_data)
-                            values.append(value)
-                            offset += typeMap[data_type]['size']
-                          tempData['data'][sense] = values[0]
-                          NiclaSenseME[sense]['data'] = values
-          # for sense in senses:
-            # print(sense, NiclaSenseME[sense]['data'])
-          Sensor1['sensorData'].append(tempData)
-          print(f"{address} : {Sensor1['sensorData']}")
-    except Exception as e:
-      print(f'disconnected {address} {e}')
-    finally:
-      await asyncio.sleep(30)
 
-        
-    
- 
+## 여기서부터는 안됐을 때의 로직
 
-async def main():
-  global sensor_list
-  lock = asyncio.Lock()
-  for address in sensor_list:
-    asyncio.create_task(connect(address, lock))
-  while 1:  
-    await asyncio.sleep(2)
+# 연결이 끊기면 시도하는 횟수 = temp
+temp = 0
+# 못찾으면 다시 시도하는 횟수 = notFound
+notFound = 0
+
+while (temp < 5 and notFound < 3):
+  ans = asyncio.run(main(Sensor1['sensorAdress']))
+  print(ans)
+  print(temp, notFound)
+  # 만약 못 찾았다면
+  if ans == 'cannot Found':
+    notFound += 1
+  elif ans == 'disconnect':
+    temp += 1
 
 
-asyncio.run(main())
+print(Sensor1)
+if temp == 5:
+    print('연결이 5번이상 끊겨서 종료합니다.')
+else:
+    print('3번이상 장비를 찾을 수 없어서 종료합니다.')
 
 
 '''
