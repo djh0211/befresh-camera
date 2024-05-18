@@ -10,8 +10,11 @@ from pathlib import Path
 import asyncio
 import random
 from datetime import datetime
-
+from dotenv import load_dotenv
+import os
 from multiprocessing import Process, Manager, log_to_stderr, get_logger
+from pytz import timezone
+import json
 
 from kafka import KafkaProducer
 
@@ -82,12 +85,12 @@ class SensorDataBuffer:
 			self.data[bt_address].append(data)
 	async def update_file(self, ):
 		async with self.lock:
-			file_path = './sensor_data_buffer.pickle'
+			file_path = '/home/pi/dev/befresh-release/src/sensor_data_buffer.pickle'
 			with open(file_path, 'wb') as fw:
 				pickle.dump(self.data, fw)
 	async def load_file(self, ):
 		async with self.lock:
-			file_path = './sensor_data_buffer.pickle'
+			file_path = '/home/pi/dev/befresh-release/src/sensor_data_buffer.pickle'
 			if Path(file_path).is_file():
 				with open(file_path, 'rb') as fr:
 					self.data = pickle.load(fr)
@@ -96,12 +99,6 @@ class SensorDataBuffer:
 			copied = copy.deepcopy(self.data)
 			self.data = {}
 			return copied
-
-
-async def bluetooth_job_re_queue_in(bt_address, time):
-	await asyncio.sleep(time)
-	bluetooth_connect_task_queue.put(bt_address)
-
 
 
 async def bluetooth_connect_over_10(bt_address, sensor_data_buffer, bt_address_lookup_dic):
@@ -222,9 +219,9 @@ async def bluetooth_process_worker(sensor_flag, bt_address_dic, bt_address_looku
 		# if n>=10 then it have to be timed out
 		keys = list(bt_address_lookup_dic.keys())
 		n = len(keys)
-		timeout = 120
+		timeout = 600
 		try:
-			timeout = int(120/n)
+			timeout = int(600/n)
 		except:
 			pass
 		if n == 0:
@@ -302,7 +299,7 @@ def bluetooth_process_wrapper(sensor_flag, bt_address_dic, bt_address_lookup_dic
 
 ##########################################################
 def load_bt_address_file(bt_address_dic):
-	file_path = './bt_address_file.pickle'
+	file_path = '/home/pi/dev/befresh-release/src/bt_address_file.pickle'
 	if Path(file_path).is_file():
 		with open(file_path, 'rb') as fr:
 			temp = pickle.load(fr)
@@ -312,7 +309,7 @@ def load_bt_address_file(bt_address_dic):
 		bt_address_dic[:] = []
 
 def update_bt_address_file(bt_address_dic, bt_address):
-	file_path = './bt_address_file.pickle'
+	file_path = '/home/pi/dev/befresh-release/src/bt_address_file.pickle'
 	if bt_address not in bt_address_dic:
 	  bt_address_dic.append(bt_address)
 	with open(file_path, 'wb') as fw:
@@ -325,12 +322,14 @@ async def set_sensor_data_message_signal(sensor_flag):
 	sensor_flag.value = 1
 	logger.info(sensor_flag.value)
 async def produce_sensor_data_message(sensor_data_buffer, sensor_flag):
-	# global producer
+	load_dotenv()
+	KAFKA_SERVER = os.getenv('KAFKA_SERVER')
+	REFRIGERATOR_ID = int(os.getenv('REFRIGERATOR_ID'))
+
 	logger = get_logger()
-	# logger.info('im here 1')	
 	producer = KafkaProducer(
-		bootstrap_servers=['k10a307.p.ssafy.io:9092'], # 전달하고자 하는 카프카 브로커의 주소 리스트
-		value_serializer=lambda x:json.dumps(x).encode('utf-8'), # 메시지의 값 직렬화
+		bootstrap_servers=[KAFKA_SERVER],
+		value_serializer=lambda x:json.dumps(x).encode('utf-8'), 
 		retries=3
 	)
 	
@@ -346,16 +345,15 @@ async def produce_sensor_data_message(sensor_data_buffer, sensor_flag):
 			if len(data.keys()) > 0:
 				payload = {
 					'execute_time' : dt,
-					'refrigeratorId' : 100,
+					'refrigeratorId' : REFRIGERATOR_ID,
 					'data' : data
 				}
 				try:
 					logger.info(f'run task!!! {payload}')
 					producer.send('sensor-data-topic', value=payload)
 
-				except:
-					print('failed run task')
-					logger.info('failed run task')
+				except Exception as e:
+					logger.info(f'failed run task {e}')
 			sensor_flag.value = 0
 		await asyncio.sleep(5)
 

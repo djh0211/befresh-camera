@@ -6,36 +6,20 @@ import wave
 import speech_recognition as sr
 import pygame
 
-REGIST_SOUND = './correct.wav'
-START_SOUND = './start.wav'
-ON_SOUND = './on.wav'
-OFF_SOUND = './off.wav'
+REGIST_SOUND = '/home/pi/dev/befresh-release/src/correct.wav'
+START_SOUND = '/home/pi/dev/befresh-release/src/start.wav'
+ON_SOUND = '/home/pi/dev/befresh-release/src/on.wav'
+OFF_SOUND = '/home/pi/dev/befresh-release/src/off.wav'
 
-def speak(text):
-	tts = gTTS(text=text, lang='en')
-	
-	tts_bytes = BytesIO()
-	tts.write_to_fp(tts_bytes)
-	tts_bytes.seek(0)
-	
-	# pygame.mixer.pre_init(24000)
-	# pygame.mixer.init()
-	pygame.mixer.music.load(tts_bytes)
-	# pygame.mixer.music.set_volume(0.5)
-	# pygame.mixer.music.play()
-	while pygame.mixer.music.get_busy():
-		pygame.time.Clock().tick(10)
 def play_sound(sound):
 	pygame.mixer.music.load(sound)
 	pygame.mixer.music.play()
-	# while pygame.mixer.music.get_busy():
-	#	pygame.time.Clock().tick(10)
+
 def STT(mic, recognizer):
 	try_cnt = 0
 	while True:
 		play_sound(START_SOUND)
 		if try_cnt>=3:
-			# quit
 			return -1
 		try:
 			with mic as source:
@@ -56,8 +40,4 @@ def init_mic():
 	recognizer = sr.Recognizer()
 	mic = sr.Microphone()
 	return mic, recognizer
-
-mic, recognizer = init_mic()
-speak('registration on')
-# speak('registration off')
 

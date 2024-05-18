@@ -17,17 +17,13 @@ RUN apt update && apt install -y --no-install-recommends \
      && rm -rf /var/cache/apt/archives/* \
      && rm -rf /var/lib/apt/lists/*
      
-RUN apt-get install -y python3-pip python3-dev portaudio19-dev libasound2-dev
+RUN apt-get install -y python3-pip python3-dev portaudio19-dev libasound2-dev python3-venv gcc-aarch64-linux-gnu 
 
-RUN apt-get install -y python3-venv
+RUN python3 -m venv --system-site-packages befresh-env
 
-RUN apt-get install -y gcc-aarch64-linux-gnu 
+RUN source ./befresh-env/bin/activate
 
-RUN python3 -m venv --system-site-packages befresh_env
-
-RUN source ./befresh_env/bin/activate
-
-R
+pip install -r requirements.txt
 
 
 

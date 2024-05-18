@@ -1,8 +1,8 @@
 from module.distance_module import distance_logic
 from module.SignalBlock import SignalBlock
-from module.mic import init_mic, speak, STT, play_sound, ON_SOUND, OFF_SOUND
+from module.mic import init_mic, STT, play_sound, ON_SOUND, OFF_SOUND
 from module.register_food import register_QR_food, register_OCR_food, register_GENERAL_food
-from module.bluetooth_module_v3 import SensorDataFormat, typeMap, SensorDataKeys, load_bt_address_file, update_bt_address_file, bluetooth_process_worker, SensorDataBuffer, bluetooth_process_wrapper, bluetooth_process, set_sensor_data_message_signal, produce_sensor_data_message
+from module.bluetooth_module import update_bt_address_file, bluetooth_process_wrapper, bluetooth_process, set_sensor_data_message_signal
 from module.button_module import start_button, exit_button
 
 import asyncio
@@ -27,7 +27,6 @@ from pathlib import Path
 from pytz import timezone
 from multiprocessing import Process, Manager, log_to_stderr, get_logger
 
-
 # Scheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -46,12 +45,9 @@ import struct
 from kafka import KafkaProducer
 
 def setup_logger():
-    # 로그 레벨 설정
     logger = log_to_stderr()
     logger.setLevel(logging.INFO)
-    # 로그 포맷 설정
     formatter = logging.Formatter('[%(levelname)s/%(processName)s] %(message)s')
-    # 로그를 파일에 출력하기 위한 핸들러 설정
     file_handler = logging.FileHandler('multiprocessing_logs.log')
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -59,12 +55,7 @@ def setup_logger():
 
 signal_block = SignalBlock()
 	
-####################################################
-# BT
 
-"""
-
-"""
 #######################################################################
 # camera/general
 
@@ -109,7 +100,7 @@ async def camera_mode(bt_address_dic, button_flag, bt_address_lookup_dic):
 		# calculate distance
 		distance_task = asyncio.create_task(distance_logic())
 		"""
-		# replace by button click
+		# replaced by button click
 
 		signal_flag = signal_block.get_flag()
 		if signal_flag == 1:
@@ -134,16 +125,11 @@ async def camera_mode(bt_address_dic, button_flag, bt_address_lookup_dic):
 						data = json.loads(string_data)
 						if 'bt_address' in data:
 							print(f'bt_address: {data}')
-							# qr_history_set.add(string_data)
 							bt_address = data['bt_address']
-							# async bluetooth connect
-							### future_bluetooth = loop.run_in_executor(executor, bluetooth_connect, containerId)
 							
 							bt_address_lookup_dic[bt_address] = True
 							update_bt_address_file(bt_address_dic, bt_address)
-							
 
-							### task_bluetooth_connect = asyncio.create_task(bluetooth_connect(containerId))
 							# food name STT
 							food_name = STT(mic, recognizer)
 
@@ -215,13 +201,11 @@ async def camera_mode(bt_address_dic, button_flag, bt_address_lookup_dic):
 		await asyncio.sleep(0.5)
 
 	play_sound(OFF_SOUND)
-	# register mode exit. if you want to power register mode again, press the button1
 	return futures_dic
 
 #######################################################################
 # socket
 async def handle_echo(reader, writer):
-	# global async_queue
 	global signal_block
 	data = await reader.read(100)
 	message = data.decode()
@@ -252,6 +236,10 @@ async def socket_task_wrapper():
 # program
 async def program():
 	global signal_block
+	
+	load_dotenv()
+	REFRIGERATOR_ID = int(os.getenv('REFRIGERATOR_ID'))
+	KAFKA_SERVER = os.getenv('KAFKA_SERVER')
 	
 	# socket init need to port env
 	socket_future = asyncio.create_task(socket_task_wrapper())
@@ -286,20 +274,18 @@ async def program():
 					print(f'{name}: {result}')
 				
 				data_box = {
-					'refrigeratorId': 100,
+					'refrigeratorId': REFRIGERATOR_ID,
 					'foodList': results
 				}
 			
 				
 				producer = KafkaProducer(
-					bootstrap_servers=['k10a307.p.ssafy.io:9092'], # 전달하고자 하는 카프카 브로커의 주소 리스트
-					value_serializer=lambda x:json.dumps(x).encode('utf-8'), # 메시지의 값 직렬화
+					bootstrap_servers=[KAFKA_SERVER],
+					value_serializer=lambda x:json.dumps(x).encode('utf-8'),
 					retries=3
 				)
 				producer.send('food-regist', value=data_box)
-							
-				# register mode off
-				
+											
 
 			# General mode : 2
 			else:

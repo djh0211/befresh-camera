@@ -1,0 +1,302 @@
+[0:28:09.590631865] [13829] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:297 [0mlibcamera v0.0.5+83-bde9b04f
+[0:28:09.622179535] [13836] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:437 [0mRegistered camera /base/soc/i2c0mux/i2c@1/imx708@1a to Unicam device /dev/media1 and ISP device /dev/media2
+[0:28:09.622298201] [13836] [1;32m INFO [1;37mRPI [1;34mpipeline_base.cpp:1101 [0mUsing configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[0:28:09.624554205] [13829] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:840 [0mPipeline handler in use by another process
+Camera __init__ sequence did not complete.
+pygame 2.5.2 (SDL 2.28.3, Python 3.9.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 242, in __init__
+    self._open_camera()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 446, in _open_camera
+    self.camera.acquire()
+RuntimeError: Failed to acquire camera: Device or resource busy
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pi/dev/befresh-release/src/main.py", line 302, in <module>
+    picam2 = Picamera2()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 254, in __init__
+    raise RuntimeError("Camera __init__ sequence did not complete.")
+RuntimeError: Camera __init__ sequence did not complete.
+[INFO/MainProcess] process shutting down
+[0:32:00.359259958] [15022] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:297 [0mlibcamera v0.0.5+83-bde9b04f
+[0:32:00.468413502] [15028] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:437 [0mRegistered camera /base/soc/i2c0mux/i2c@1/imx708@1a to Unicam device /dev/media1 and ISP device /dev/media2
+[0:32:00.468536298] [15028] [1;32m INFO [1;37mRPI [1;34mpipeline_base.cpp:1101 [0mUsing configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[0:32:00.475511424] [15022] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:1033 [0mconfiguring streams: (0) 640x480-XBGR8888 (1) 1536x864-SBGGR10_CSI2P
+[0:32:00.476166105] [15028] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:565 [0mSensor: /base/soc/i2c0mux/i2c@1/imx708@1a - Selected sensor format: 1536x864-SBGGR10_1X10 - Selected unicam format: 1536x864-pBAA
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.front.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM front
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround21
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround21
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround40.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround40
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround41
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround50
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround51
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround71.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround71
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM iec958
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM spdif
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM spdif
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.hdmi.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM hdmi
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.hdmi.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM hdmi
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.modem
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.modem
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline
+ALSA lib pcm_oss.c:377:(_snd_pcm_oss_open) Unknown field port
+ALSA lib pcm_oss.c:377:(_snd_pcm_oss_open) Unknown field port
+ALSA lib pcm_a52.c:823:(_snd_pcm_a52_open) a52 is only for playback
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=6,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM iec958:{AES0 0x6 AES1 0x82 AES2 0x0 AES3 0x2  CARD 0}
+ALSA lib pcm_usb_stream.c:486:(_snd_pcm_usb_stream_open) Invalid type for card
+ALSA lib pcm_usb_stream.c:486:(_snd_pcm_usb_stream_open) Invalid type for card
+ALSA lib pcm_dmix.c:1075:(snd_pcm_dmix_open) unable to open slave
+pygame 2.5.2 (SDL 2.28.3, Python 3.9.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[INFO/SyncManager-1] child process calling self.run()
+[INFO/SyncManager-1] manager serving at b'\x00listener-15043-0'
+[INFO/MainProcess] wrapper in
+[INFO/Process-2] child process calling self.run()
+[INFO/Process-2] process in
+[INFO/Process-2] worker in
+[INFO/Process-2] FB:89:EB:22:95:84 function in
+button pushed
+[INFO/Process-3] child process calling self.run()
+[INFO/Process-3] process shutting down
+[INFO/Process-3] process exiting with exitcode 0
+button pushed
+/home/pi/dev/befresh-release/src/module/bluetooth_module.py:160: FutureWarning: is_connected has been changed to a property. Calling it as an async method will be removed in a future version
+  if await client.is_connected():
+[INFO/Process-2] FB:89:EB:22:95:84: {'time': '2024-05-18 19:53', 'data': {'temperature': 33.95000076293945, 'co2': 537, 'humidity': 37, 'pressure': 1009.8347778320312, 'nh3': 0, 'gas': 101700}}
+[0:32:23.451860328] [15417] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:297 [0mlibcamera v0.0.5+83-bde9b04f
+[0:32:23.484115603] [15423] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:437 [0mRegistered camera /base/soc/i2c0mux/i2c@1/imx708@1a to Unicam device /dev/media1 and ISP device /dev/media2
+[0:32:23.484238010] [15423] [1;32m INFO [1;37mRPI [1;34mpipeline_base.cpp:1101 [0mUsing configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[0:32:23.491203376] [15417] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:1033 [0mconfiguring streams: (0) 640x480-XBGR8888 (1) 1536x864-SBGGR10_CSI2P
+[0:32:23.491801447] [15423] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:565 [0mSensor: /base/soc/i2c0mux/i2c@1/imx708@1a - Selected sensor format: 1536x864-SBGGR10_1X10 - Selected unicam format: 1536x864-pBAA
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.front.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM front
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround21
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround21
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround40.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround40
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround41
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround50
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround51.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround51
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.surround71.0:CARD=0'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM surround71
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM iec958
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM spdif
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM spdif
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.hdmi.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM hdmi
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.hdmi.0:CARD=0,AES0=4,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM hdmi
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.modem
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.modem
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline
+ALSA lib pcm_oss.c:377:(_snd_pcm_oss_open) Unknown field port
+ALSA lib pcm_oss.c:377:(_snd_pcm_oss_open) Unknown field port
+ALSA lib pcm_a52.c:823:(_snd_pcm_a52_open) a52 is only for playback
+ALSA lib confmisc.c:1281:(snd_func_refer) Unable to find definition 'cards.bcm2835_headpho.pcm.iec958.0:CARD=0,AES0=6,AES1=130,AES2=0,AES3=2'
+ALSA lib conf.c:4745:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5233:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2660:(snd_pcm_open_noupdate) Unknown PCM iec958:{AES0 0x6 AES1 0x82 AES2 0x0 AES3 0x2  CARD 0}
+ALSA lib pcm_usb_stream.c:486:(_snd_pcm_usb_stream_open) Invalid type for card
+ALSA lib pcm_usb_stream.c:486:(_snd_pcm_usb_stream_open) Invalid type for card
+ALSA lib pcm_dmix.c:1075:(snd_pcm_dmix_open) unable to open slave
+pygame 2.5.2 (SDL 2.28.3, Python 3.9.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+[INFO/SyncManager-1] child process calling self.run()
+[INFO/SyncManager-1] manager serving at b'\x00listener-15437-0'
+[INFO/MainProcess] wrapper in
+[INFO/Process-2] child process calling self.run()
+[INFO/Process-2] process in
+[INFO/Process-2] worker in
+[INFO/Process-2] FB:89:EB:22:95:84 function in
+[INFO/Process-2] FB:89:EB:22:95:84 function in
+[0:32:27.074565332] [15460] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:297 [0mlibcamera v0.0.5+83-bde9b04f
+[0:32:27.105527430] [15507] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:437 [0mRegistered camera /base/soc/i2c0mux/i2c@1/imx708@1a to Unicam device /dev/media1 and ISP device /dev/media2
+[0:32:27.105654058] [15507] [1;32m INFO [1;37mRPI [1;34mpipeline_base.cpp:1101 [0mUsing configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[0:32:27.107483529] [15460] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:840 [0mPipeline handler in use by another process
+Camera __init__ sequence did not complete.
+pygame 2.5.2 (SDL 2.28.3, Python 3.9.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 242, in __init__
+    self._open_camera()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 446, in _open_camera
+    self.camera.acquire()
+RuntimeError: Failed to acquire camera: Device or resource busy
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pi/dev/befresh-release/src/main.py", line 302, in <module>
+    picam2 = Picamera2()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 254, in __init__
+    raise RuntimeError("Camera __init__ sequence did not complete.")
+RuntimeError: Camera __init__ sequence did not complete.
+[INFO/MainProcess] process shutting down
+[0:32:34.685443796] [15423] [1;31mERROR [1;37mV4L2 [1;34mv4l2_videodevice.cpp:1906 [0;32m/dev/video1[21:cap]: [0mFailed to start streaming: Invalid argument
+[INFO/MainProcess] sending shutdown message to manager
+[INFO/SyncManager-1] process shutting down
+[INFO/SyncManager-1] process exiting with exitcode 0
+button pushed
+Traceback (most recent call last):
+  File "/home/pi/dev/befresh-release/src/main.py", line 311, in <module>
+    asyncio.run(program())
+  File "/usr/lib/python3.9/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/usr/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/home/pi/dev/befresh-release/src/main.py", line 269, in program
+    camera_futures_dic = await camera_mode(bt_address_dic, button_flag, bt_address_lookup_dic)
+  File "/home/pi/dev/befresh-release/src/main.py", line 82, in camera_mode
+    picam2.start()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 1055, in start
+    self.start_()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 1023, in start_
+    self.camera.start(controls)
+RuntimeError: Failed to start camera: Invalid argument
+[INFO/MainProcess] process shutting down
+[INFO/MainProcess] calling join() for process Process-2
+/home/pi/dev/befresh-release/src/module/bluetooth_module.py:160: FutureWarning: is_connected has been changed to a property. Calling it as an async method will be removed in a future version
+  if await client.is_connected():
+Task exception was never retrieved
+future: <Task finished name='Task-4' coro=<produce_sensor_data_message() done, defined at /home/pi/dev/befresh-release/src/module/bluetooth_module.py:324> exception=BrokenPipeError(32, 'Broken pipe')>
+Traceback (most recent call last):
+  File "/home/pi/dev/befresh-release/src/module/bluetooth_module.py", line 339, in produce_sensor_data_message
+    if sensor_flag.value == 1:
+  File "/usr/lib/python3.9/multiprocessing/managers.py", line 1128, in get
+    return self._callmethod('get')
+  File "/usr/lib/python3.9/multiprocessing/managers.py", line 808, in _callmethod
+    conn.send((self._id, methodname, args, kwds))
+  File "/usr/lib/python3.9/multiprocessing/connection.py", line 211, in send
+    self._send_bytes(_ForkingPickler.dumps(obj))
+  File "/usr/lib/python3.9/multiprocessing/connection.py", line 416, in _send_bytes
+    self._send(header + buf)
+  File "/usr/lib/python3.9/multiprocessing/connection.py", line 373, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+[INFO/Process-2] FB:89:EB:22:95:84: {'time': '2024-05-18 19:54', 'data': {'gas': 101700, 'humidity': 37, 'temperature': 33.95000076293945, 'nh3': 0, 'pressure': 1009.8347778320312, 'co2': 537}}
+[0:32:44.410915955] [15521] [1;32m INFO [1;37mCamera [1;34mcamera_manager.cpp:297 [0mlibcamera v0.0.5+83-bde9b04f
+[0:32:44.442652159] [15528] [1;32m INFO [1;37mRPI [1;34mvc4.cpp:437 [0mRegistered camera /base/soc/i2c0mux/i2c@1/imx708@1a to Unicam device /dev/media1 and ISP device /dev/media2
+[0:32:44.442770047] [15528] [1;32m INFO [1;37mRPI [1;34mpipeline_base.cpp:1101 [0mUsing configuration file '/usr/share/libcamera/pipeline/rpi/vc4/rpi_apps.yaml'
+[0:32:44.444666907] [15521] [1;32m INFO [1;37mCamera [1;34mcamera.cpp:840 [0mPipeline handler in use by another process
+Camera __init__ sequence did not complete.
+pygame 2.5.2 (SDL 2.28.3, Python 3.9.2)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 242, in __init__
+    self._open_camera()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 446, in _open_camera
+    self.camera.acquire()
+RuntimeError: Failed to acquire camera: Device or resource busy
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/pi/dev/befresh-release/src/main.py", line 302, in <module>
+    picam2 = Picamera2()
+  File "/usr/lib/python3/dist-packages/picamera2/picamera2.py", line 254, in __init__
+    raise RuntimeError("Camera __init__ sequence did not complete.")
+RuntimeError: Camera __init__ sequence did not complete.
+[INFO/MainProcess] process shutting down
+Task exception was never retrieved
+future: <Task finished name='Task-4' coro=<produce_sensor_data_message() done, defined at /home/pi/dev/befresh-release/src/module/bluetooth_module.py:324> exception=BrokenPipeError(32, 'Broken pipe')>
+Traceback (most recent call last):
+  File "/home/pi/dev/befresh-release/src/module/bluetooth_module.py", line 339, in produce_sensor_data_message
+    if sensor_flag.value == 1:
+  File "/usr/lib/python3.9/multiprocessing/managers.py", line 1128, in get
+    return self._callmethod('get')
+  File "/usr/lib/python3.9/multiprocessing/managers.py", line 808, in _callmethod
+    conn.send((self._id, methodname, args, kwds))
+  File "/usr/lib/python3.9/multiprocessing/connection.py", line 211, in send
+    self._send_bytes(_ForkingPickler.dumps(obj))
+  File "/usr/lib/python3.9/multiprocessing/connection.py", line 416, in _send_bytes
+    self._send(header + buf)
+  File "/usr/lib/python3.9/multiprocessing/connection.py", line 373, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe

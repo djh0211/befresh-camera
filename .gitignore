@@ -126,3 +126,4 @@ tflite1-env/
 /data/annotations/
 **/*.env
 korean_ocr_using_pororo/
+**/befresh-env/
