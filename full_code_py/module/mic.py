@@ -29,12 +29,15 @@ def play_sound(sound):
 	# while pygame.mixer.music.get_busy():
 	#	pygame.time.Clock().tick(10)
 def STT(mic, recognizer):
+	try_cnt = 0
 	while True:
 		play_sound(START_SOUND)
-
-		with mic as source:
-			audio = recognizer.listen(source, timeout=4, phrase_time_limit=4)		
+		if try_cnt>=3:
+			# quit
+			return -1
 		try:
+			with mic as source:
+				audio = recognizer.listen(source, timeout=3, phrase_time_limit=3)
 			result = recognizer.recognize_google(audio, language='ko-KR')
 			play_sound(REGIST_SOUND)
 			# speak('the food is '+result)
@@ -42,6 +45,7 @@ def STT(mic, recognizer):
 			return result
 		except:
 			print('repeat once')
+			try_cnt += 1
 			pass
 def init_mic():
 	# STT

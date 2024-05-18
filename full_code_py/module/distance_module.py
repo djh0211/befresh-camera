@@ -18,7 +18,7 @@ async def distance_logic():
 	
 	try:
 		gpio.output(TRIGER, gpio.LOW)
-		await asyncio.sleep(0.1)
+		await asyncio.sleep(0.2)
 		gpio.output(TRIGER, gpio.HIGH)
 		await asyncio.sleep(0.00002)
 		gpio.output(TRIGER, gpio.LOW)
