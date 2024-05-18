@@ -2,7 +2,7 @@ from module.distance_module import distance_logic
 from module.SignalBlock import SignalBlock
 from module.mic import init_mic, speak, STT, play_sound
 from module.register_food import register_QR_food, register_OCR_food, register_GENERAL_food
-from module.bluetooth_module_v2 import SensorDataFormat, typeMap, SensorDataKeys, load_bt_address_file, update_bt_address_file, bluetooth_job_re_queue_in, bluetooth_connect, bluetooth_process_worker, SensorDataBuffer, bluetooth_process_wrapper, bluetooth_process, set_sensor_data_message_signal, produce_sensor_data_message
+from module.bluetooth_module_v3 import SensorDataFormat, typeMap, SensorDataKeys, load_bt_address_file, update_bt_address_file, bluetooth_process_worker, SensorDataBuffer, bluetooth_process_wrapper, bluetooth_process, set_sensor_data_message_signal, produce_sensor_data_message
 from module.button_module import start_button, exit_button
 
 import asyncio
@@ -85,7 +85,7 @@ async def general_mode():
 	return food_name, general_register_task
 
 # QR/Valid Date mode
-async def camera_mode(bluetooth_connect_task_queue, bt_address_dic, button_flag):
+async def camera_mode(bluetooth_connect_task_queue, bt_address_dic, button_flag, bt_address_lookup_dic):
 	global signal_block
 	
 	logger = get_logger()
@@ -144,8 +144,7 @@ async def camera_mode(bluetooth_connect_task_queue, bt_address_dic, button_flag)
 							# async bluetooth connect
 							### future_bluetooth = loop.run_in_executor(executor, bluetooth_connect, containerId)
 							
-							
-							bluetooth_connect_task_queue.put(bt_address)
+							bt_address_lookup_dic[bt_address] = True
 							update_bt_address_file(bt_address_dic, bt_address)
 							
 
@@ -281,8 +280,7 @@ async def program():
 		bt_address_dic = manager.list()
 		bt_address_lookup_dic = manager.dict()
 
-		bluetooth_process_wrapper(bluetooth_connect_task_queue, sensor_flag, bt_address_dic)
-		# bluetooth_process_wrapper(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic)
+		bluetooth_process_wrapper(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic)
 
 
 		scheduler = AsyncIOScheduler()
@@ -297,7 +295,7 @@ async def program():
 				# register mode on
 				await signal_block.power_on()
 				
-				camera_futures_dic = await camera_mode(bluetooth_connect_task_queue, bt_address_dic, button_flag)
+				camera_futures_dic = await camera_mode(bluetooth_connect_task_queue, bt_address_dic, button_flag, bt_address_lookup_dic)
 				if camera_futures_dic == -1:
 					continue
 				results = await asyncio.gather(*camera_futures_dic.values())

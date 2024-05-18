@@ -1,0 +1,12 @@
+picamera2==0.3.12
+Pillow==8.1.2
+pvporcupine==3.0.2
+PyAudio==0.2.11
+pygame==2.5.2
+pytesseract==0.3.10
+python-dotenv==1.0.1
+pytz==2024.1
+pyzbar==0.1.9
+requests==2.31.0
+responses==0.12.1
+SpeechRecognition==3.10.4

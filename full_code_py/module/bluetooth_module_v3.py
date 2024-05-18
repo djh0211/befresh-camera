@@ -104,14 +104,11 @@ async def bluetooth_job_re_queue_in(bluetooth_connect_task_queue, bt_address, ti
 
 
 
-async def bluetooth_connect(bt_address, sensor_data_buffer):
+async def bluetooth_connect_over_10(bt_address, sensor_data_buffer, bt_address_lookup_dic):
 	logger = get_logger()
 	logger.info(f"{bt_address} function in")
 
-	failed = 0
 	while True:
-		if failed>3:
-			return False
 		try:
 			async with BleakClient(bt_address) as client:
 				if await client.is_connected():
@@ -139,23 +136,72 @@ async def bluetooth_connect(bt_address, sensor_data_buffer):
 
 					await sensor_data_buffer.append_data(bt_address, tempData)
 					await sensor_data_buffer.update_file()
-					return True
+					return 1
 		except BleakError as e:
 			if 'was not found' in str(e):
 				print('failed to find device')
+				bt_address_lookup_dic[bt_address] = False
 			else:
 				print('connect fail')
 		except Exception as e:
-			logger.info(f'{bt_address} : failed : {e}')
-			failed += 1
+			logger.info(f'{bt_address} : failed by other reason')
+
+async def bluetooth_connect_under_10(bt_address, sensor_data_buffer, bt_address_lookup_dic):
+	logger = get_logger()
+	failed_to_find = 0
+	while True:
+		logger.info(f"{bt_address} function in")
+		keys = list(bt_address_lookup_dic.keys())
+		n = len(keys)
+		if n >= 10:
+			# change mode to over_10
+			return -1
+		if failed_to_find >= 3:
+			bt_address_lookup_dic[bt_address] = False
+		try:
+			async with BleakClient(bt_address) as client:
+				if await client.is_connected():
+					print(f"Connected to {bt_address}")
+					services = client.services
+					tempData = {
+						'time': time.strftime('%Y-%m-%d %H:%M'),
+						'data': {}
+					}
+					for service in services:
+						for characteristic in service.characteristics:
+							for sense in SensorDataKeys:
+								if characteristic.uuid == SensorDataFormat[sense]['uuid']:
+									if 'read' in characteristic.properties:
+										read_data = await client.read_gatt_char(characteristic)
+										data_types = SensorDataFormat[sense]['structure']
+										values = []
+										offset = 0
+										for data_type in data_types:
+											value, = struct.unpack_from(typeMap[data_type]['type'], read_data)
+											values.append(value)
+											offset += typeMap[data_type]['size']
+										tempData['data'][sense] = values[0]
+					logger.info(f'{bt_address}: {tempData}')
+
+					await sensor_data_buffer.append_data(bt_address, tempData)
+					await sensor_data_buffer.update_file()
+					return 1
+		except BleakError as e:
+			if 'was not found' in str(e):
+				print('failed to find device')
+				failed_to_find += 1
+			else:
+				print('connect fail')
+		except Exception as e:
+			logger.info(f'{bt_address} : failed by other reason')
+
+					
 
 
-
-
-async def bluetooth_process_worker(bluetooth_connect_task_queue, sensor_flag, bt_address_dic):
+async def bluetooth_process_worker(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic):
 	logger = get_logger()
 	logger.info("worker in")
-	
+
 	# connect, data transfer time check
 	time_list = []
 
@@ -164,50 +210,92 @@ async def bluetooth_process_worker(bluetooth_connect_task_queue, sensor_flag, bt
 	await sensor_data_buffer.load_file()
 	# load bt file
 	load_bt_address_file(bt_address_dic)
-	logger.info(bt_address_dic)
 	for bt_address in bt_address_dic:
 		bluetooth_connect_task_queue.put(bt_address)
-	# worker start
-	# bt_worker_task = asyncio.create_task(bluetooth_connect_worker(bluetooth_connect_task_queue, sensor_data_buffer, ble_lock))
+		bt_address_lookup_dic[bt_address] = True # if True -> in latest job it connected. so it should be go on
 
 	asyncio.create_task(produce_sensor_data_message(sensor_data_buffer, sensor_flag))
 
-	while True:
-		if bluetooth_connect_task_queue.empty():
+	idx_cursor = 0
+	while True:		
+		# default transfer schedule is 10min, and max-data-transfer time is 60sec
+		# so, if n<10 then it could be over request -> so we have to divide by time
+		# if n>=10 then it have to be timed out
+		keys = list(bt_address_lookup_dic.keys())
+		n = len(keys)
+		timeout = 120
+		try:
+			timeout = int(120/n)
+		except:
+			pass
+		if n == 0:
 			await asyncio.sleep(10)
-		# not empty
-		bt_address = bluetooth_connect_task_queue.get()
-		start = time.time()
-		result = await bluetooth_connect(bt_address, sensor_data_buffer)
-		end = time.time()
+			continue
+		try:
+			idx_cursor %= n
+		except:
+			pass
+		bt_address = keys[idx_cursor]
+		if bt_address_lookup_dic[bt_address] == False:
+			# latest -> failed to find -> pass once
+			bt_address_lookup_dic[bt_address] = True
+			idx_cursor += 1
+			continue
 		
-		# append and out
-		"""
-		time_list.append([result ,end-start])
-		p = './time_history.pickle'
-		with open(p, 'wb') as fw:
-		  pickle.dump(time_list, fw)
-		
-		logger.info(f'bt --> {result}, {end-start}')
-		"""
-		
-		if result:
-			asyncio.create_task(bluetooth_job_re_queue_in(bluetooth_connect_task_queue, bt_address, 3))
+		if n<10:
+			# 10/n min timeout
+			try:
+				start = time.time()
+				result = await asyncio.wait_for(bluetooth_connect_under_10(bt_address, sensor_data_buffer, bt_address_lookup_dic), timeout=timeout)
+				if result == 1:
+					# successed
+					print('sleep...')
+					while True:
+						now = time.time()
+						if now - start >= timeout:
+							# go to next
+							idx_cursor += 1
+							break
+						await asyncio.sleep(2)
+				elif result == -1:
+					# have to change mode
+					continue			
+			except asyncio.TimeoutError:
+				idx_cursor += 1
+				pass
+			print('wake up!!')
 		else:
-			asyncio.create_task(bluetooth_job_re_queue_in(bluetooth_connect_task_queue, bt_address, 3))
+			# 60sec timeout
+			try:
+				start = time.time()
+				result = await asyncio.wait_for(bluetooth_connect_over_10(bt_address, sensor_data_buffer, bt_address_lookup_dic), timeout=60)
+				if result == 1:
+					# successed
+					while True:
+						now = time.time()
+						if now - start >= int(10/n):
+							# go to next
+							idx_cursor += 1
+							break
+						await asyncio.sleep(2)
+			except asyncio.TimeoutError:
+				idx_cursor += 1
+				pass
+
+		
     
 
 
-def bluetooth_process(bluetooth_connect_task_queue, sensor_flag, bt_address_dic):
+def bluetooth_process(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic):
     logger = get_logger()
     logger.info("process in")
-    asyncio.run(bluetooth_process_worker(bluetooth_connect_task_queue, sensor_flag, bt_address_dic))
+    asyncio.run(bluetooth_process_worker(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic))
        
 
-def bluetooth_process_wrapper(bluetooth_connect_task_queue, sensor_flag, bt_address_dic):
+def bluetooth_process_wrapper(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic):
     logger = get_logger()
     logger.info("wrapper in")
-    p = Process(target=bluetooth_process, args=(bluetooth_connect_task_queue, sensor_flag, bt_address_dic,))
+    p = Process(target=bluetooth_process, args=(bluetooth_connect_task_queue, sensor_flag, bt_address_dic, bt_address_lookup_dic, ))
     p.start()
     # p.join()	
 
@@ -234,7 +322,6 @@ def update_bt_address_file(bt_address_dic, bt_address):
 ############################################################
 async def set_sensor_data_message_signal(sensor_flag):
 	logger = get_logger()	
-	logger.info('hihi')
 
 	sensor_flag.value = 1
 	logger.info(sensor_flag.value)

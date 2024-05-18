@@ -30,7 +30,7 @@ import cv2
 import pandas as pd
 import re
 
-"""
+
 """
 path = './captured.jpg'
 image = cv2.imread(path)
@@ -38,7 +38,7 @@ rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 text = pytesseract.image_to_string(rgb_image, lang="eng+kor")
 print(text)
 """
-"""
+
 
 """
 """
@@ -64,18 +64,20 @@ while True:
 	# YYYY.MM.DD
 	# DEC.31.2022
 	# DD.MM.YY.
-
+	
 	array = picam2.capture_array()
 	array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+	
+	array = cv2.fastNlMeansDenoisingColored(array, None, 10, 10, 7, 21)
+	
 	custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789.'
-	text = pytesseract.image_to_string(array, config=custom_config)
+	text = pytesseract.image_to_string(array, lang='kor', config=custom_config)
 	date_pattern = r'\d{2,}\.\d{1,}\.\d{1,}'
-	dates = re.findall(date_pattern, text)
-	print(dates)
+	# dates = re.findall(date_pattern, text)
+	print(text)
 	
 	# picam2.switch_mode_and_capture_file(preview_config, './captured.jpg')
 
-	time.sleep(1)
 
 
 	

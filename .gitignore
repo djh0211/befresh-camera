@@ -121,6 +121,8 @@ dmypy.json
 ml-skeleton-py_env/
 befresh_env/
 tflite1-env/
+**/*env*
 /examples/
 /data/annotations/
 **/*.env
+korean_ocr_using_pororo/
