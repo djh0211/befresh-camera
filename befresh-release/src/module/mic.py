@@ -36,7 +36,7 @@ def init_mic():
 	# STT
 	pygame.mixer.pre_init(24000)
 	pygame.mixer.init()
-	pygame.mixer.music.set_volume(0.5)
+	pygame.mixer.music.set_volume(0.8)
 	recognizer = sr.Recognizer()
 	mic = sr.Microphone()
 	return mic, recognizer

@@ -1,6 +1,6 @@
 from module.distance_module import distance_logic
 from module.SignalBlock import SignalBlock
-from module.mic import init_mic, STT, play_sound, ON_SOUND, OFF_SOUND
+from module.mic import init_mic, STT, play_sound, ON_SOUND, OFF_SOUND, START_SOUND
 from module.register_food import register_QR_food, register_OCR_food, register_GENERAL_food
 from module.bluetooth_module import update_bt_address_file, bluetooth_process_wrapper, bluetooth_process, set_sensor_data_message_signal
 from module.button_module import start_button, exit_button
@@ -243,6 +243,9 @@ async def program():
 	
 	# socket init need to port env
 	socket_future = asyncio.create_task(socket_task_wrapper())
+	
+	play_sound(START_SOUND)
+
 	
 	# bluetooth, sensor data
 	with Manager() as manager:
